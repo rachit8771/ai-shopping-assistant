@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Shopping Assistant</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f0f2f5; }
+        
+        /* Chat Window */
+        .chat-box { height: 500px; overflow-y: scroll; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .message { margin: 10px 0; padding: 15px; border-radius: 15px; max-width: 85%; line-height: 1.5; }
+        .user { background: #0084ff; color: white; margin-left: auto; }
+        .bot { background: #e4e6eb; color: black; }
+        
+        /* Input Area  */
+        .input-area { display: flex; margin-top: 20px; gap: 10px; border: 2px dashed transparent; padding: 5px; border-radius: 10px; transition: 0.2s; }
+        .input-area.dragging { border-color: #0084ff; background: #e6f2ff; } /* Visual cue when dragging */
+        
+        input[type="text"] { flex: 1; padding: 15px; border: 1px solid #ddd; border-radius: 25px; outline: none; }
+        
+        /* File Upload Styles */
+        .file-upload { position: relative; overflow: hidden; display: inline-block; cursor: pointer; }
+        .file-upload input[type=file] { position: absolute; font-size: 100px; opacity: 0; right: 0; top: 0; cursor: pointer; }
+        .icon-btn { padding: 15px; background: #ddd; border-radius: 50%; border: none; cursor: pointer; font-size: 1.2em; }
+        
+        button.send-btn { padding: 15px 30px; background: #0084ff; color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; }
+        
+        /* Image Preview */
+        .preview-container { display: none; margin-top: 10px; position: relative; width: fit-content; }
+        img.preview { max-width: 150px; max-height: 150px; border-radius: 10px; border: 2px solid #0084ff; }
+        .remove-btn { position: absolute; top: -10px; right: -10px; background: red; color: white; border-radius: 50%; width: 25px; height: 25px; border: none; cursor: pointer; font-weight: bold; }
+
+        /* Table */
+        table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 0.9em; }
+        th, td { border: 1px solid #ddd; padding: 8px; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h2 style="text-align: center;">🛍️ AI Shopping Assistant</h2>
+    
+    <div class="chat-box" id="chatBox">
+        <div class="message bot">
+            
+            Hi! I am your smart shopping Assistant
+        
+        </div>
+    </div>
+
+    <div class="preview-container" id="previewContainer">
+        <img id="imagePreview" class="preview">
+        <button class="remove-btn" onclick="clearImage()">×</button>
+    </div>
+    
+    <div class="input-area" id="dropZone">
+        <div class="file-upload">
+            <button class="icon-btn">🔗</button>
+            <input type="file" id="imageInput" accept="image/*" onchange="handleFileSelect(this.files)">
+        </div>
+
+        <input type="text" id="userInput" placeholder="Type message here..." onkeypress="handleEnter(event)" onpaste="handlePaste(event)">
+        <button class="send-btn" onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        let currentImageBase64 = null; 
+        const dropZone = document.getElementById('dropZone');
+
+        
+        function handlePaste(e) {
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let item of items) {
+                if (item.type.indexOf("image") === 0) {
+                    const blob = item.getAsFile();
+                    processFile(blob); // Send to our processor
+                    e.preventDefault(); // Stop it from pasting the file name as text
+                }
+            }
+        }
+
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+      
+        dropZone.addEventListener('dragenter', () => dropZone.classList.add('dragging'));
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragging'));
+
+        dropZone.addEventListener('drop', (e) => {
+            dropZone.classList.remove('dragging');
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFileSelect(files);
+        });
+
+        
+        function handleFileSelect(files) {
+            if (files && files[0]) {
+                processFile(files[0]);
+            }
+        }
+
+        function processFile(file) {
+            const reader = new FileReader();
+            reader.onloadend = function() {
+                currentImageBase64 = reader.result;
+                const img = document.getElementById('imagePreview');
+                img.src = currentImageBase64;
+                document.getElementById('previewContainer').style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        }
+
+        function clearImage() {
+            currentImageBase64 = null;
+            document.getElementById('previewContainer').style.display = 'none';
+            document.getElementById('imageInput').value = ""; // Clear file input
+        }
+
+        //  SEND MESSAGE 
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const chatBox = document.getElementById('chatBox');
+            const text = input.value;
+            
+            if (text.trim() === "" && !currentImageBase64) return;
+
+            // Show User Message
+            let userHtml = `<div class="message user">`;
+            if (currentImageBase64) {
+                userHtml += `<img src="${currentImageBase64}" style="max-width: 200px; display:block; margin-bottom:10px; border-radius:10px;">`;
+            }
+            userHtml += `${text}</div>`;
+            chatBox.innerHTML += userHtml;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            input.value = "";
+            const imageToSend = currentImageBase64; 
+            clearImage(); 
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        message: text,
+                        image: imageToSend 
+                    })
+                });
+                const data = await response.json();
+                const prettyHtml = marked.parse(data.reply);
+                chatBox.innerHTML += `<div class="message bot">${prettyHtml}</div>`;
+            } catch (error) {
+                chatBox.innerHTML += `<div class="message bot" style="color:red">Error: Server connection failed.</div>`;
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function handleEnter(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+    </script>
+</body>
+</html>

@@ -8,7 +8,7 @@ An intelligent, web-based chat assistant that helps users find products, compare
 
 ##  Features
 
-* **👁️ Visual Recognition:** Users can drag-and-drop or paste (Ctrl+V) images of products, and the AI will identify them using **Qwen-VL**.
+* **👁️ Visual Recognition:** Users can drag-and-drop or paste images of products, and the AI will identify them.
 * **🧠 Intelligent Chat:** Powered by **Nvidia Nemotron**, offering human-like advice on shopping deals and specs.
 * **💾 Context Aware:** Remembers conversation history for a natural flow.
 * **⚡ Fast & Modern:** Built with **FastAPI** for high-performance backend processing.
@@ -19,7 +19,6 @@ An intelligent, web-based chat assistant that helps users find products, compare
 * **Backend:** Python, FastAPI
 * **Frontend:** HTML, CSS, JavaScript
 * **AI Models:**
-    * *Vision:* Qwen-2-VL-7B (via OpenRouter)
-    * *Chat:* Nvidia Nemotron-3 (via OpenRouter)
+    *  Nvidia Nemotron-3 (via OpenRouter)
 * **Deployment:** Render
 

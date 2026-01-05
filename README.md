@@ -2,7 +2,7 @@
 
 An intelligent, web-based chat assistant that helps users find products, compares prices, and identifies items from images using advanced AI.
 
-🔴 **[Live Demo]([https://ai-shopping-assistant-0ij5.onrender.com])** (Click to chat!)
+ **[Live Demo](https://ai-shopping-assistant-0ij5.onrender.com)** (Click to chat!)
 
 
 
@@ -16,7 +16,7 @@ An intelligent, web-based chat assistant that helps users find products, compare
 
 ## Tech Stack
 
-* **Backend:** Python, FastAPI, Uvicorn
+* **Backend:** Python, FastAPI
 * **Frontend:** HTML, CSS, JavaScript
 * **AI Models:**
     * *Vision:* Qwen-2-VL-7B (via OpenRouter)

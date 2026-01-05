@@ -72,8 +72,8 @@
             for (let item of items) {
                 if (item.type.indexOf("image") === 0) {
                     const blob = item.getAsFile();
-                    processFile(blob); // Send to our processor
-                    e.preventDefault(); // Stop it from pasting the file name as text
+                    processFile(blob); 
+                    e.preventDefault(); 
                 }
             }
         }
@@ -166,3 +166,4 @@
 </body>
 
 </html>
+
